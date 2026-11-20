@@ -77,6 +77,13 @@ Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 (web application, deploye
 (identity resolution and evidence checks) · Google Gemini Flash (build-time extraction) · NCBI PubMed and Europe PMC
 (bibliographic metadata and licence information).
 
+### Dataset coverage
+
+VectoRank's underlying research corpus contains **1,313 unique scientific publications**, of which 538 are currently included in the public Beta.
+
+The remaining publications have been retained for further metadata verification, processing and quality control. The public dataset is therefore a curated subset of the larger literature collection, rather than an exhaustive representation of the available AAV research.
+
+Future development will focus on expanding coverage while maintaining source traceability, conservative evidence filtering and clear distinctions between extracted information and independently validated findings.
 ## Current status and limitations
 
 VectoRank is a **Beta research prototype**.
