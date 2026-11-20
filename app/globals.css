@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+/* VectoRank interface tokens (landing, search, results, candidate dossier).
+   One accent hue. Extracted directions use a hue-free ramp on purpose: a
+   direction (increased / reduced) is not a good/bad verdict, so color is
+   used for navigation and grouping, never for biological judgement. */
+@theme {
+  --color-vr-bg: #090c12;
+  --color-vr-surface: #0f131b;
+  --color-vr-raised: #141a24;
+  --color-vr-line: #1d2430;
+  --color-vr-line-strong: #2a3343;
+  --color-vr-ink: #e7eaf1;
+  --color-vr-muted: #97a1b4;
+  --color-vr-faint: #657087;
+  --color-vr-accent: #36cdb9;
+  --color-vr-accent-dim: #1f6f66;
+  --color-vr-note: #d2b36a;
+  --color-vr-dir-1: #d5dbe6;
+  --color-vr-dir-2: #aab3c4;
+  --color-vr-dir-3: #838ea3;
+  --color-vr-dir-4: #5f6a80;
+  --color-vr-dir-5: #434d61;
+  --font-vr-display: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-vr-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-vr-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@layer base {
+  body {
+    background: #0c1324;
+    color: #dce1fb;
+    font-family: "Inter", sans-serif;
+  }
+}
+@layer utilities {
+  .font-headline {
+    font-family: "Manrope", sans-serif;
+  }
+
+  .glass-panel {
+    background: rgba(25, 31, 49, 0.7);
+    backdrop-filter: blur(24px);
+  }
+
+  .hero-gradient-text {
+    background: linear-gradient(135deg, #7bd0ff 0%, #4edea3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .noise-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.05;
+    pointer-events: none;
+  }
+
+  .bg-background {
+    background-color: #0c1324;
+  }
+
+  .bg-surface {
+    background-color: #0c1324;
+  }
+
+  .bg-surface-container-lowest {
+    background-color: #070d1f;
+  }
+
+  .bg-surface-container-low {
+    background-color: #151b2d;
+  }
+
+  .bg-surface-container-high {
+    background-color: #23293c;
+  }
+
+  .bg-surface-container-highest {
+    background-color: #2e3447;
+  }
+
+  .text-on-surface {
+    color: #dce1fb;
+  }
+
+  .text-on-surface-variant {
+    color: #bec8d2;
+  }
+
+  .text-primary {
+    color: #7bd0ff;
+  }
+
+  .text-secondary {
+    color: #4edea3;
+  }
+
+  .text-tertiary {
+    color: #c0c1ff;
+  }
+
+  .text-on-primary-container {
+    color: #00374d;
+  }
+
+  .bg-primary {
+    background-color: #7bd0ff;
+  }
+
+  .bg-secondary {
+    background-color: #4edea3;
+  }
+
+  .bg-tertiary {
+    background-color: #c0c1ff;
+  }
+
+  .border-outline-variant {
+    border-color: #3e4850;
+  }
+}
+
+/* ---- VectoRank evidence interface components ---- */
+@layer components {
+  /* "Not stated" is always drawn the same way: a hatched neutral fill. */
+  .vr-hatch {
+    background-color: rgba(151, 161, 180, 0.07);
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(151, 161, 180, 0.3) 0,
+      rgba(151, 161, 180, 0.3) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  }
+
+  .vr-panel {
+    background: var(--color-vr-surface);
+    border: 1px solid var(--color-vr-line);
+    border-radius: 10px;
+  }
+
+  .vr-num {
+    font-family: var(--font-vr-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .vr-eyebrow {
+    font-family: var(--font-vr-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-vr-faint);
+  }
+
+  .vr-focus:focus-visible {
+    outline: 1px solid var(--color-vr-accent);
+    outline-offset: 2px;
+  }
+
+  .vr-select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #97a1b4 50%),
+      linear-gradient(135deg, #97a1b4 50%, transparent 50%);
+    background-position:
+      calc(100% - 16px) 50%,
+      calc(100% - 11px) 50%;
+    background-size:
+      5px 5px,
+      5px 5px;
+    background-repeat: no-repeat;
+  }
+
+  details > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@layer components {
+  /* Quiet scientific texture borrowed from the landing page. Used only as a
+     faint masked backdrop behind page headers, never behind data. */
+  .vr-texture {
+    background-image: url("/abstract_molecular_network.png");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.1;
+    mix-blend-mode: screen;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  }
+
+  .vr-display {
+    font-family: var(--font-vr-display);
+    letter-spacing: -0.025em;
+  }
+
+  .vr-cta {
+    background: var(--color-vr-accent);
+    color: var(--color-vr-bg);
+    font-weight: 600;
+    border-radius: 8px;
+    transition: filter 0.15s, box-shadow 0.15s;
+  }
+  .vr-cta:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 0 0 4px rgba(54, 205, 185, 0.14);
+  }
+
+  .vr-row {
+    transition: background-color 0.12s, border-color 0.12s;
+  }
+  .vr-row:hover {
+    background: var(--color-vr-raised);
+    border-color: var(--color-vr-line-strong);
+  }
+}

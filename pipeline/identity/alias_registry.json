@@ -1,0 +1,101 @@
+{
+  "schema": "vectorank.alias_registry.v1",
+  "policy": [
+    "An entry requires a reason grounded in published nomenclature or biological meaning.",
+    "No entry may be added because it improves a benchmark, gate or test number.",
+    "No entry may encode an identity taken from the 30-paper development pilot.",
+    "Entries are typography and naming facts only. They never assert lineage, tropism or any other biology.",
+    "Keep this file small and human-reviewable."
+  ],
+  "generic_terms": {
+    "reason": "Class-level mentions. A class is not a candidate, so these never receive a profile.",
+    "terms": [
+      "aav",
+      "aavs",
+      "raav",
+      "raavs",
+      "scaav",
+      "aav vector",
+      "aav vectors",
+      "aav capsid",
+      "aav capsids",
+      "aav serotype",
+      "aav serotypes",
+      "aav variant",
+      "aav variants"
+    ]
+  },
+  "unresolved_markers": {
+    "reason": "A mention qualified by one of these words names something the text has not identified. Attaching it to a concrete candidate would be false attribution, so it stays unresolved.",
+    "markers": [
+      "novel",
+      "new",
+      "selected",
+      "candidate",
+      "our",
+      "this",
+      "these",
+      "emerging",
+      "putative",
+      "unknown"
+    ]
+  },
+  "non_candidate_terms": {
+    "reason": "Known entities that are not AAV capsid candidates. Each is excluded on biological meaning, not to change any metric. Matched on the exact normalized form only.",
+    "terms": [
+      {
+        "term": "AAVR",
+        "reason": "AAV receptor (KIAA0319L) — a host cell protein, not a vector."
+      },
+      {
+        "term": "AAVP",
+        "reason": "AAV-phage hybrid particle — a bacteriophage chimera, not an AAV capsid candidate."
+      },
+      {
+        "term": "AAVLP",
+        "reason": "AAV-like particle — an antigen-display scaffold, not a delivery candidate."
+      },
+      {
+        "term": "AAVX",
+        "reason": "POROS CaptureSelect AAVX — an affinity chromatography resin, not a vector."
+      }
+    ]
+  },
+  "aliases": [
+    {
+      "canonical_name": "AAV-PHP.eB",
+      "aliases": ["AAVPHP.eB", "PHP.eB", "AAV PHP.eB", "AAVPHPeB"],
+      "reason": "Published name of the Cre-recombination-based engineered AAV9 variant. The extractor emits the unspaced form 'AAVPHP.eB'."
+    },
+    {
+      "canonical_name": "AAV-PHP.B",
+      "aliases": ["AAVPHP.B", "PHP.B"],
+      "reason": "Published name of the engineered AAV9 variant. Same spacing issue as AAV-PHP.eB."
+    },
+    {
+      "canonical_name": "AAV2.7m8",
+      "aliases": ["AAV2-7m8", "7m8"],
+      "reason": "Published name of the 7m8 peptide-insertion variant. Dot and hyphen spellings denote one capsid."
+    },
+    {
+      "canonical_name": "AAVrh.10",
+      "aliases": ["AAVrh10"],
+      "reason": "Rhesus isolate rh.10. The dot is conventional in publication; both spellings denote one capsid."
+    },
+    {
+      "canonical_name": "AAVrh32.33",
+      "aliases": ["AAVrh.32.33"],
+      "reason": "Rhesus isolate rh32.33, a natural AAV32/AAV33 recombinant. Both spellings denote one capsid."
+    },
+    {
+      "canonical_name": "AAV3B",
+      "aliases": ["AAV3b"],
+      "reason": "Serotype 3B. Case of the subtype letter carries no meaning."
+    },
+    {
+      "canonical_name": "AAVLK03",
+      "aliases": ["AAV-LK03"],
+      "reason": "Engineered capsid LK03, written with and without a hyphen after AAV. Owner decision 2026-11-05 (single reviewer, not metric-driven): both spellings denote one capsid. The canonical spelling stays the one the existing profile already uses, so its candidate_id is unchanged."
+    }
+  ]
+}
