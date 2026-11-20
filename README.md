@@ -4,7 +4,7 @@
 
 ### Live demo: [vectorank.vercel.app](https://vectorank.vercel.app)
 
-*Research-stage Beta. An independently developed prototype. Not a validated predictor, and not a decision tool.*
+*Research-stage Beta. An independently developed prototype.*
 
 ![VectoRank home page](docs/img/home.png)
 
@@ -58,8 +58,7 @@ filtering by tissue, model or route happens at query time over the aggregated ev
 ## Scientific evidence extraction and provenance
 
 - **Two extraction paths, never merged.** Fixed text rules and a language model (Google Gemini Flash, with a versioned
-  prompt and schema) read the same abstracts. Their results are displayed separately; the AI-extracted layer is labelled
-  *not independently validated*.
+  prompt and schema) read the same abstracts. Their results are displayed separately; the AI-extracted layer is labelled.
 - **Provenance is mandatory.** A relation is kept only if its quote occurs verbatim in the abstract and its capsid is
   named in the cited sentence.
 - **Withholding by deterministic rules.** Claims are held back when an effect is attributable to a treatment, dose,
