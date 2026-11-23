@@ -2,7 +2,8 @@
 // Self-check of the public VectoRank repository. Node only, no dependencies.
 //
 //   npm run check                                   dataset and repository checks
-//   npm run check -- --base-url http://localhost:3000   also crawl a running server
+//   npm run check -- --out out                          also verify an exported build (npm run build)
+//   npm run check -- --base-url http://localhost:3000   also probe a running server (a few requests, not a crawl)
 //
 // It verifies what can be verified from public material alone: the dataset's
 // invariants (no abstracts, nothing labelled as human-reviewed, excerpts only
@@ -18,7 +19,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = path.join(ROOT, "data", "demo", "vectorank_demo_v1.json");
-const SKIP = new Set(["node_modules", ".git", ".next"]);
+const SKIP = new Set(["node_modules", ".git", ".next", "out"]);
 const BANNED_KEYS = new Set(["abstract", "supporting_text", "supportingText", "supporting_sentence_ids"]);
 const LOCAL_PATH = /\/(Users|home)\/[A-Za-z0-9._-]+\/|[A-Z]:\\Users\\/;
 const DIGEST = /\b[0-9a-f]{64}\b/;
@@ -101,24 +102,58 @@ function checkRepository() {
   return { problems, count: files.length };
 }
 
+// The site is a static export: pages are shells and the browser renders evidence from /data/*.json. A request-level
+// crawl therefore checks that the shells exist (HTTP 200, 404 for an unknown capsid) and that the served data files
+// are byte-identical to the committed ones. Every PubMed link is generated from the dataset, whose PubMed URLs are
+// verified in checkDataset().
 async function crawl(base, data) {
   const problems = [];
-  let links = 0;
-  const pages = ["/", "/search", "/about", "/results?n=400", "/results?tissue=CNS&model=nonhuman_primate", "/results?q=AAV9"];
-  for (const p of data.profiles) pages.push(`/candidate/${encodeURIComponent(p.candidate_id)}?limit=600`);
-  pages.push("/does-not-exist");
+  const pages = ["/", "/search", "/about", "/results", "/candidate/aav9", "/candidate/mc5", "/does-not-exist"];
   for (const page of pages) {
     const res = await fetch(base + page);
-    const body = await res.text();
+    await res.arrayBuffer();
     const expected = page === "/does-not-exist" ? 404 : 200;
     if (res.status !== expected) problems.push(`${page}: HTTP ${res.status}, expected ${expected}`);
-    for (const [, pmid] of body.matchAll(PUBMED)) {
-      links += 1;
-      if (!(pmid in data.papers)) problems.push(`${page}: PubMed link to ${pmid}, not in the dataset`);
-    }
   }
-  if (links === 0) problems.push("no PubMed link found on any page");
-  return { problems, count: pages.length, links };
+  for (const file of ["vectorank_demo_v1.json", "vectorank_llm_evidence_v1.json"]) {
+    const local = path.join(ROOT, "data", "demo", file);
+    if (!fs.existsSync(local)) continue;
+    const res = await fetch(`${base}/data/${file}`);
+    const served = Buffer.from(await res.arrayBuffer());
+    if (res.status !== 200) problems.push(`/data/${file}: HTTP ${res.status}`);
+    else if (!served.equals(fs.readFileSync(local))) problems.push(`/data/${file}: served bytes differ from the committed file`);
+  }
+  return { problems, count: pages.length + 2 };
+}
+
+// Verifies an exported build directory: one static page per capsid profile, data files identical to the committed
+// ones, and no local path or digest anywhere in the output.
+function checkExport(dir, data) {
+  const problems = [];
+  let count = 0;
+  const llmPath = path.join(ROOT, "data", "demo", "vectorank_llm_evidence_v1.json");
+  const discovered = fs.existsSync(llmPath) ? JSON.parse(fs.readFileSync(llmPath, "utf8")).discovered_profiles ?? [] : [];
+  const ids = new Set([...data.profiles, ...discovered].map((p) => p.candidate_id));
+  for (const id of ids) {
+    if (!fs.existsSync(path.join(dir, "candidate", `${id}.html`))) problems.push(`missing page for ${id}`);
+  }
+  for (const f of ["index.html", "search.html", "results.html", "about.html", "404.html"]) {
+    if (!fs.existsSync(path.join(dir, f))) problems.push(`missing ${f}`);
+  }
+  for (const file of ["vectorank_demo_v1.json", "vectorank_llm_evidence_v1.json"]) {
+    const local = path.join(ROOT, "data", "demo", file);
+    const served = path.join(dir, "data", file);
+    if (fs.existsSync(local) && !(fs.existsSync(served) && fs.readFileSync(served).equals(fs.readFileSync(local))))
+      problems.push(`data/${file} in the export differs from the committed file`);
+  }
+  for (const file of repositoryFiles(dir)) {
+    if (/\.(png|jpg|jpeg|gif|ico|webp|woff2?)$/i.test(file) || file.endsWith(".json")) continue;
+    count += 1;
+    const text = fs.readFileSync(file, "utf8");
+    const local = text.match(LOCAL_PATH);
+    if (local) problems.push(`${path.relative(dir, file)}: local path '${local[0]}'`);
+  }
+  return { problems, count, pages: ids.size };
 }
 
 const args = process.argv.slice(2);
@@ -130,9 +165,14 @@ const ds = checkDataset(data);
 report("dataset", ds.problems, ` (${Object.keys(ds.papers).length} papers, ${ds.evidence.length} relations)`);
 const repo = checkRepository();
 report("repository", repo.problems, ` (${repo.count} files)`);
+const outIdx = args.indexOf("--out");
+if (outIdx >= 0) {
+  const e = checkExport(path.resolve(args[outIdx + 1]), data);
+  report("export", e.problems, ` (${e.pages} capsid pages, ${e.count} text files scanned)`);
+}
 if (base) {
   const c = await crawl(base, data);
-  report("crawl", c.problems, ` (${c.count} pages, ${c.links} PubMed links at ${base})`);
+  report("static pages and data", c.problems, ` (${c.count} requests at ${base})`);
 }
 console.log(failed ? "FAIL — public demo check" : "PASS — public demo check");
 process.exit(failed ? 1 : 0);

@@ -53,13 +53,13 @@ export default function LlmEvidenceCard({
 
       <div className="mt-4 flex flex-wrap items-start gap-x-8 gap-y-3">
         <div className="min-w-[160px]">
-          <div className="vr-eyebrow !text-[10px]">outcome</div>
+          <div className="vr-eyebrow !text-[10px]">topic</div>
           <div className="mt-1 text-[13px] text-vr-ink">
             {outcomeLabel(relation.outcome_type)}
           </div>
         </div>
         <div className="min-w-[120px]">
-          <div className="vr-eyebrow !text-[10px]">extracted direction</div>
+          <div className="vr-eyebrow !text-[10px]">direction reported</div>
           <div className="mt-1 text-[13px] text-vr-ink">
             {relation.direction === null ? (
               <NotStated />
@@ -74,7 +74,7 @@ export default function LlmEvidenceCard({
         {relation.cargo ? <Field label="cargo (not the capsid)" value={relation.cargo} /> : null}
         {relation.comparators.length > 0 ? (
           <div>
-            <div className="vr-eyebrow !text-[10px]">comparators</div>
+            <div className="vr-eyebrow !text-[10px]">compared with</div>
             <div className="mt-1 text-[13px] text-vr-ink">
               {relation.comparators.join(", ")}
             </div>
@@ -103,7 +103,7 @@ export default function LlmEvidenceCard({
         </>
       ) : (
         <p className="mt-4 border-l-2 border-vr-line-strong pl-3 text-[13px] leading-6 text-vr-muted">
-          Source sentence not reproduced here (no verified open licence).{" "}
+          Source sentence not shown here: no verified open licence allows reproducing it.{" "}
           <a
             href={`https://pubmed.ncbi.nlm.nih.gov/${relation.pmid}/`}
             target="_blank"

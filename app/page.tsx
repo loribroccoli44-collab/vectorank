@@ -1,4 +1,6 @@
+import { withBase } from "@/lib/base";
 import Link from "next/link";
+import { primeServerData } from "@/lib/profiles/server-data";
 import { loadPapers, loadProfiles } from "@/lib/profiles/load";
 import {
   buildMatrix,
@@ -28,6 +30,7 @@ const NARROWER: Context = { ...LENS, route: "intravenous" };
 const HEDGE = /\b(may|might|could|should|would|potential|promise|promising|future)\b/i;
 
 export default function HomePage() {
+  primeServerData();
   const artifact = loadProfiles();
   const papers = loadPapers();
 
@@ -79,13 +82,13 @@ export default function HomePage() {
               <span className="text-vr-accent">gene delivery.</span>
             </h1>
             <p className="mt-6 max-w-[560px] text-[18px] leading-8 text-vr-muted">
-              VectoRank turns fragmented AAV literature into capsid-centric
-              evidence profiles: which tissues, models and routes each capsid
-              was tested in, what is still unknown, and the exact sentence and
-              PMID behind every finding.
+              Explore AAV capsids and see what published studies report about
+              each one: the tissues, models and delivery routes it was tested
+              in, what is still unknown, and the original publication behind
+              every finding.
             </p>
             <form
-              action="/results"
+              action={withBase("/results")}
               method="get"
               role="search"
               className="mt-8 flex max-w-[560px] gap-2"
@@ -126,9 +129,9 @@ export default function HomePage() {
               </Link>
             </p>
             <p className="vr-num mt-8 text-[12px] text-vr-faint">
-              {papers.size.toLocaleString("en-US")} papers ·{" "}
-              {attributed.toLocaleString("en-US")} candidate-attributed relations ·{" "}
-              {ruleProfiles.length} candidates
+              {papers.size.toLocaleString("en-US")} publications ·{" "}
+              {attributed.toLocaleString("en-US")} extracted findings ·{" "}
+              {ruleProfiles.length} capsids
               {aiDiscovered > 0 ? ` · +${aiDiscovered} AI-discovered (experimental)` : ""}
             </p>
           </div>
@@ -137,7 +140,7 @@ export default function HomePage() {
             <div className="relative overflow-hidden rounded-2xl border border-vr-line-strong bg-vr-surface p-2 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.9)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/aav_capsid_render.png"
+                src={withBase("/aav_capsid_render.png")}
                 alt="Illustrative render of an AAV capsid"
                 className="w-full rounded-xl object-cover"
               />
@@ -155,7 +158,7 @@ export default function HomePage() {
                   {lead.canonical_name}
                 </span>
                 <span className="vr-num text-[12px] text-vr-muted">
-                  {lead.paper_count} papers · {lead.relation_count} evidence relations{" "}
+                  {lead.paper_count} publications · {lead.relation_count} findings{" "}
                   <span className="text-vr-accent">→</span>
                 </span>
               </Link>
@@ -169,7 +172,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-[1240px] px-6">
           <SectionHeading
             eyebrow="From a question to a sentence"
-            title="How to read a capsid profile, with a real example"
+            title="How to read a capsid profile: a worked example"
           />
           <p className="mb-10 max-w-[640px] text-[15px] leading-7 text-vr-muted">
             This is a worked example on real data: {lead.canonical_name} in the
@@ -187,7 +190,7 @@ export default function HomePage() {
             <div className="vr-panel flex flex-col p-5">
               <div className="flex items-center gap-3">
                 <span className="vr-num text-[11px] text-vr-accent">1</span>
-                <span className="text-[14px] font-medium">Start from a delivery context</span>
+                <span className="text-[14px] font-medium">Find capsids by what was studied</span>
               </div>
               <p className="mt-2 text-[12px] leading-5 text-vr-faint">
                 Example context (fixed here, editable on the search page):
@@ -227,13 +230,13 @@ export default function HomePage() {
                       <span className="vr-num text-vr-ink">
                         {r.summary.matching.length}{" "}
                         <span className="text-[11px] text-vr-faint">
-                          {r.summary.matching.length === 1 ? "relation" : "relations"}
+                          {r.summary.matching.length === 1 ? "finding" : "findings"}
                         </span>
                       </span>
                       <span className="vr-num text-vr-muted">
                         {r.summary.matchingPapers}{" "}
                         <span className="text-[11px] text-vr-faint">
-                          {r.summary.matchingPapers === 1 ? "paper" : "papers"}
+                          {r.summary.matchingPapers === 1 ? "publication" : "publications"}
                         </span>
                       </span>
                     </Link>
@@ -244,7 +247,7 @@ export default function HomePage() {
                 Ordered by matching evidence volume, not suitability. Adding
                 route = intravenous leaves{" "}
                 <span className="vr-num text-vr-muted">{narrower.matches.length}</span>{" "}
-                capsids, because most relations do not state a route. That is
+                capsids, because most findings do not report a delivery route. That is
                 unknown, not negative.
               </p>
               <div className="mt-auto pt-4">
@@ -270,12 +273,6 @@ export default function HomePage() {
                   {lead.canonical_name} · {lead.relation_count} relations
                 </span>
               </div>
-              <p className="mt-2 text-[12px] leading-5 text-vr-muted">
-                Each square counts the extracted findings for one tissue (row)
-                and one experimental model (column). Darker means more
-                findings, not a better result. Hatched means the paper did not
-                say. Click a square to read those findings.
-              </p>
               <div className="mt-3">
                 <EvidenceMatrix
                   matrix={matrix}
@@ -293,7 +290,7 @@ export default function HomePage() {
               <div className="flex items-center gap-3">
                 <span className="vr-num text-[11px] text-vr-accent">3</span>
                 <span className="text-[14px] font-medium">
-                  Read one finding and open its source paper
+                  Read one finding and open its source publication
                 </span>
               </div>
               <span className="text-[12px] text-vr-faint">
@@ -322,11 +319,11 @@ export default function HomePage() {
               ],
               [
                 "Unknown stays unknown",
-                "When a paper does not state a tissue, model or route, VectoRank shows “not stated”. It is never filled in and never read as a negative result.",
+                "When an abstract does not report a tissue, model or route, VectoRank shows “not reported”. It is never filled in and never read as a negative result.",
               ],
               [
                 "Every number opens its sentence",
-                "Each count leads to the relations behind it, the supporting text, and the PMID it was extracted from.",
+                "Each count leads to the findings behind it, the supporting text where the licence allows, and the PubMed record it came from.",
               ],
             ].map(([title, text]) => (
               <div key={title} className="vr-panel p-5">

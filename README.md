@@ -52,8 +52,9 @@ flowchart LR
 ```
 
 Ingestion, extraction, identity resolution and aggregation run **at build time** and write schema-versioned artifacts.
-The web application only reads those artifacts; it has no database, no API keys and no runtime model calls. Any
-filtering by tissue, model or route happens at query time over the aggregated evidence.
+The web application only reads those artifacts; it has no database, no API keys and no runtime model calls. It is
+generated as a static site: filtering by tissue, model or route happens in the visitor's browser, over the aggregated
+evidence.
 
 ## Scientific evidence extraction and provenance
 
@@ -115,18 +116,22 @@ data/demo/      the two generated evidence artifacts the app reads (see NOTICE.m
 pipeline/       audited extracts of the processing code: identity resolver and alias registry,
                 evidence checks, the extraction prompt, and their tests
 scripts/        self-check of the dataset and a crawl of a running server
-docs/img/       screenshots
+docs/            hosting notes; img/ holds the screenshots
 ```
 
 Not included, and kept private: the ingestion and extraction runners, the evaluation harness and its reference data,
 and unpublished validation work. Run it locally:
 
 ```bash
-npm ci && npm run build && npm start      # http://localhost:3000
-npm run check                             # dataset and repository self-check
+npm ci
+npm run build                             # static export into out/
+npm run preview                           # http://localhost:3000
+npm run check -- --out out                # dataset and export self-check
 python3 pipeline/tests/test_pipeline.py   # evidence-check tests
 python3 pipeline/tests/test_identity_resolver.py
 ```
+
+The site is a static export: no server or database is needed to host it. See [`docs/HOSTING.md`](docs/HOSTING.md).
 
 ## Authorship and acknowledgements
 

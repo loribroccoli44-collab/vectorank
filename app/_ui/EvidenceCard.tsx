@@ -30,8 +30,8 @@ function Context({
 }
 
 const WITHHELD: Record<string, string> = {
-  reuse_rights_not_verified: "reuse rights for this text are not verified",
-  no_supporting_text: "the extractor stored no sentence",
+  reuse_rights_not_verified: "the article’s licence is not verified as allowing reuse",
+  no_supporting_text: "no supporting sentence was stored",
 };
 
 export default function EvidenceCard({
@@ -59,7 +59,7 @@ export default function EvidenceCard({
             >
               PMID {relation.pmid} ↗
             </a>
-            <span className="vr-num text-[11px] text-vr-faint">
+            <span title="Internal finding ID" className="vr-num text-[11px] text-vr-faint">
               {relation.relation_ref}
             </span>
           </div>
@@ -72,21 +72,21 @@ export default function EvidenceCard({
           {ai ? <Chip tone="note">AI-extracted — not independently validated</Chip> : null}
           <Chip tone={inherited ? "note" : "neutral"}>
             {inherited
-              ? "candidate carried over from nearby text"
-              : "candidate named in this sentence"}
+              ? "capsid inferred from nearby text, not named in this sentence"
+              : "capsid named in this sentence"}
           </Chip>
         </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-start gap-x-8 gap-y-3">
         <div className="min-w-[160px]">
-          <div className="vr-eyebrow !text-[10px]">outcome</div>
+          <div className="vr-eyebrow !text-[10px]">topic</div>
           <div className="mt-1 text-[13px] text-vr-ink">
             {outcomeLabel(relation.outcome_type)}
           </div>
         </div>
         <div className="min-w-[120px]">
-          <div className="vr-eyebrow !text-[10px]">extracted direction</div>
+          <div className="vr-eyebrow !text-[10px]">direction reported</div>
           <div className="mt-1 flex items-center gap-1.5 text-[13px] text-vr-ink">
             {relation.direction === null ? (
               <NotStated />
@@ -113,7 +113,7 @@ export default function EvidenceCard({
         ) : null}
         {relation.comparators.length > 0 ? (
           <div>
-            <div className="vr-eyebrow !text-[10px]">comparators</div>
+            <div className="vr-eyebrow !text-[10px]">compared with</div>
             <div className="mt-1 text-[13px] text-vr-ink">
               {relation.comparators.join(", ")}
             </div>
@@ -127,7 +127,7 @@ export default function EvidenceCard({
         </blockquote>
       ) : (
         <p className="mt-4 border-l-2 border-vr-line-strong pl-3 text-[13px] leading-6 text-vr-muted">
-          Source sentence not reproduced here (
+          Source sentence not shown here (
           {WITHHELD[relation.excerpt_withheld_reason ?? ""] ?? "excerpt policy"}).{" "}
           <a
             href={`https://pubmed.ncbi.nlm.nih.gov/${relation.pmid}/`}

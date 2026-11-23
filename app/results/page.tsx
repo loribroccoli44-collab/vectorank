@@ -1,3 +1,10 @@
+"use client";
+
+import { withBase } from "@/lib/base";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { toParams } from "@/lib/profiles/params";
+import DataGate from "../_ui/DataGate";
 import { RememberResults } from "../_ui/BackToResults";
 import Link from "next/link";
 import EvidenceKey from "../_ui/EvidenceKey";
@@ -12,8 +19,8 @@ import {
 } from "@/lib/profiles/context";
 import { dossierHref } from "@/lib/profiles/links";
 import { Shell } from "../_ui/chrome";
-import { Chip, NotStated, TextLink } from "../_ui/atoms";
-import CandidateCard, { ResultsHeader } from "../_ui/CandidateCard";
+import { NotStated, TextLink } from "../_ui/atoms";
+import CandidateCard from "../_ui/CandidateCard";
 import {
   DEFAULT_ORDER,
   ORDER_OPTIONS,
@@ -47,12 +54,8 @@ function CompactRow({
   );
 }
 
-export default async function ResultsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const params = await searchParams;
+function ResultsView() {
+  const params = toParams(useSearchParams());
   const artifact = loadProfiles();
   const ctx = parseContext(params);
   const q = (typeof params.q === "string" ? params.q : "").trim();
@@ -89,22 +92,17 @@ export default async function ResultsPage({
       <RememberResults />
       <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
         <div>
-          <div className="vr-eyebrow">Capsids with evidence for your search</div>
+          <div className="vr-eyebrow">Search results</div>
           <h1 className="vr-display mt-2 text-[32px] font-semibold">
             {allMatching.length}{" "}
             <span className="text-vr-muted">
-              candidate{allMatching.length === 1 ? "" : "s"} with matching
-              evidence
+              capsid{allMatching.length === 1 ? "" : "s"}{" "}
+              {hasLens || q ? "match your search" : "with documented evidence"}
             </span>
           </h1>
           <p className="mt-2 text-[13px] text-vr-muted">
-            <span className="vr-num text-vr-ink">{matchingRelations}</span>{" "}
-            relations from{" "}
-            <span className="vr-num text-vr-ink">{matchingPapers}</span> papers,
-            grouped under canonical candidates ·{" "}
-            <span className="font-vr-mono text-[11px] text-vr-faint">
-              derived from {matchingRelations} relations
-            </span>
+            <span className="vr-num text-vr-ink">{matchingRelations}</span> extracted findings from{" "}
+            <span className="vr-num text-vr-ink">{matchingPapers}</span> scientific publications
           </p>
         </div>
         <TextLink href={editHref} className="text-[13px]">
@@ -112,7 +110,7 @@ export default async function ResultsPage({
         </TextLink>
       </div>
 
-      <form action="/results" method="get" role="search" className="mt-5 flex max-w-[520px] gap-2">
+      <form action={withBase("/results")} method="get" role="search" className="mt-5 flex max-w-[520px] gap-2">
         {FACETS.map((f) =>
           ctx[f] ? <input key={f} type="hidden" name={f} value={ctx[f]!} /> : null,
         )}
@@ -135,31 +133,57 @@ export default async function ResultsPage({
         </button>
       </form>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        {FACETS.filter((f) => ctx[f]).map((f) => (
-          <span
-            key={f}
-            className="inline-flex items-center gap-2 rounded-[6px] border border-vr-line-strong px-2.5 py-1.5 text-[12px]"
-          >
-            <span className="vr-eyebrow !text-[10px]">{f}</span>
-            <span className="text-vr-ink">{facetLabel(ctx[f]!)}</span>
-          </span>
-        ))}
-        {q ? (
-          <span className="inline-flex items-center gap-2 rounded-[6px] border border-vr-accent-dim px-2.5 py-1.5 text-[12px]">
-            <span className="vr-eyebrow !text-[10px]">name</span>
-            <span className="text-vr-accent">{q}</span>
-          </span>
-        ) : null}
-      </div>
+      {selected.length > 0 || q ? (
+        <div className="mt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[12px] text-vr-faint">Active filters:</span>
+            {q ? (
+              <span className="inline-flex items-center gap-2 rounded-[6px] border border-vr-accent-dim px-2.5 py-1.5 text-[12px]">
+                <span className="vr-eyebrow !text-[10px]">name</span>
+                <span className="text-vr-accent">{q}</span>
+                <Link
+                  href={`/results${toQuery({ ...ctx })}`}
+                  aria-label={`Remove name filter ${q}`}
+                  className="vr-focus text-vr-faint hover:text-vr-ink"
+                >
+                  ×
+                </Link>
+              </span>
+            ) : null}
+            {selected.map((f) => (
+              <span
+                key={f}
+                className="inline-flex items-center gap-2 rounded-[6px] border border-vr-line-strong px-2.5 py-1.5 text-[12px]"
+              >
+                <span className="vr-eyebrow !text-[10px]">{f === "model" ? "model / species" : f === "route" ? "delivery route" : f}</span>
+                <span className="text-vr-ink">{facetLabel(ctx[f]!)}</span>
+                <Link
+                  href={`/results${toQuery({ ...ctx, [f]: undefined, q: q || undefined })}`}
+                  aria-label={`Remove ${f} filter ${facetLabel(ctx[f]!)}`}
+                  className="vr-focus text-vr-faint hover:text-vr-ink"
+                >
+                  ×
+                </Link>
+              </span>
+            ))}
+            <Link href="/results" className="vr-focus ml-1 text-[12px] text-vr-accent underline-offset-4 hover:underline">
+              Clear all
+            </Link>
+          </div>
+          {hasLens ? (
+            <p className="mt-2 max-w-[760px] text-[12px] leading-5 text-vr-faint">
+              A finding counts as a match only when its abstract states the selected{" "}
+              {selected.map((f) => (f === "model" ? "model" : f === "route" ? "route" : f)).join(", ")}. Findings that do not
+              report it are listed separately below and are never counted as matches or as negative results.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
         <p className="text-[13px] text-vr-muted">
           <span className="font-medium text-vr-ink">{statement}</span>{" "}
-          <span className="text-vr-faint">
-            Counts show how much evidence was extracted, not how well a vector
-            performs.
-          </span>
+          <span className="text-vr-faint">This is not a ranking of quality or suitability.</span>
         </p>
         <div className="flex items-center gap-2 text-[12px]">
           <span className="text-vr-faint">Order by</span>
@@ -190,33 +214,35 @@ export default async function ResultsPage({
         <p className="mt-4 text-[13px] leading-6 text-vr-muted">
           <NotStated /> A further{" "}
           <span className="vr-num text-vr-ink">{outcome.unknownOnly.length}</span>{" "}
-          candidates have no matching relation but do have relations that state
-          nothing on a selected facet. That is unknown, not negative evidence.
+          capsids have no matching finding, but have findings whose abstract does not report the selected context. That
+          is unknown, not evidence that the capsid failed.
         </p>
       ) : null}
 
       {allMatching.length === 0 ? (
         <div className="vr-panel mt-8 p-8 text-center">
-          <p className="text-[15px] text-vr-ink">
-            No capsid has a finding matching this search.
+          <p className="text-[15px] text-vr-ink">No capsid has a finding matching this search.</p>
+          <p className="mx-auto mt-2 max-w-[560px] text-[13px] leading-6 text-vr-muted">
+            That means this collection holds no such finding, not that the capsid was tested and failed. Try a
+            different spelling or alias, remove a filter (delivery route is the least often reported), or start
+            again.
           </p>
-          <p className="mx-auto mt-2 max-w-[520px] text-[13px] leading-6 text-vr-muted">
-            That means the extracted corpus holds no such evidence for the
-            current vocabulary, not that the combination was tested and failed.
-            Try removing a facet. Route is the least often stated.
-          </p>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px]">
+            <TextLink href="/results">Clear all filters</TextLink>
             <TextLink href={editHref}>Change search</TextLink>
+            {["AAV9", "AAV-PHP.B", "MC5", "BAAV"].map((n) => (
+              <TextLink key={n} href={`/results?q=${encodeURIComponent(n)}`}>
+                Try {n}
+              </TextLink>
+            ))}
           </div>
         </div>
       ) : (
         <div className="mt-6">
-          <p className="mb-3 text-[11px] leading-5 text-vr-faint">
-            Outcome columns: TRN transduction / expression · EFF efficacy · SAF safety · IMM immune · DUR durability ·
-            MFG manufacturing · MEC mechanism. A number says how many relations were extracted in that category, not what the
-            result was.
+          <p className="mb-3 text-[12px] leading-5 text-vr-faint">
+            Each number counts findings extracted from published abstracts. A count says how much was reported, not how
+            well a capsid performs: 40 transduction findings is not 40% transduction.
           </p>
-          <ResultsHeader />
           <ul className="space-y-2.5">
             {visible.map((result) => (
               <li key={result.profile.candidate_id}>
@@ -243,18 +269,17 @@ export default async function ResultsPage({
           <details className="vr-panel">
             <summary className="flex items-center justify-between px-5 py-3.5 text-[14px] text-vr-ink">
               <span>
-                Identity under review{" "}
+                Names under review{" "}
                 <span className="vr-num text-vr-muted">({outcome.review.length})</span>
               </span>
               <span className="text-[12px] text-vr-faint">
-                strings that look like sentence fragments, not capsid names
+                look like sentence fragments, not capsid names
               </span>
             </summary>
             <div className="px-5 pb-4">
               <p className="mb-2 text-[12px] leading-5 text-vr-faint">
-                Display-layer flag, not an identity resolution. These profiles
-                are not merged, renamed or re-attributed; they are only kept out
-                of the main list until extraction is improved.
+                These entries are kept out of the main list and are not merged or renamed. They stay here until the
+                extraction improves.
               </p>
               <ul>
                 {outcome.review.map((r) => (
@@ -274,13 +299,13 @@ export default async function ResultsPage({
           <details className="vr-panel">
             <summary className="flex items-center justify-between px-5 py-3.5 text-[14px] text-vr-ink">
               <span>
-                Unknown on a selected facet, no match{" "}
+                No match, context not reported{" "}
                 <span className="vr-num text-vr-muted">
                   ({outcome.unknownOnly.length})
                 </span>
               </span>
               <span className="text-[12px] text-vr-faint">
-                not evidence of absence
+                unknown, not evidence of absence
               </span>
             </summary>
             <ul className="px-5 pb-3">
@@ -289,7 +314,7 @@ export default async function ResultsPage({
                   key={r.profile.candidate_id}
                   result={r}
                   ctx={ctx}
-                  note={`${r.summary.unknownCompatible} of ${r.summary.total} relations state nothing on a selected facet`}
+                  note={`${r.summary.unknownCompatible} of ${r.summary.total} findings do not report the selected context`}
                 />
               ))}
             </ul>
@@ -303,22 +328,22 @@ export default async function ResultsPage({
 
         <details className="vr-panel">
           <summary className="flex items-center justify-between px-5 py-3.5 text-[14px] text-vr-ink">
-            <span>Not attributed to any candidate</span>
+            <span>Mentions not assigned to a capsid</span>
             <span className="text-[12px] text-vr-faint">
               <span className="vr-num">{artifact.counts.mentions_generic}</span>{" "}
               generic ·{" "}
               <span className="vr-num">{artifact.counts.mentions_unresolved}</span>{" "}
               unresolved ·{" "}
               <span className="vr-num">{artifact.counts.mentions_non_candidate}</span>{" "}
-              non-candidate mentions
+              other mentions
             </span>
           </summary>
           <div className="grid gap-6 px-5 pb-5 md:grid-cols-3">
             {(
               [
-                ["Generic", "a class, not a candidate", artifact.generic_mentions],
-                ["Unresolved", "names something it does not identify", artifact.unresolved_mentions],
-                ["Non-candidate", "a known entity that is not an AAV capsid", artifact.non_candidate_mentions],
+                ["Generic", "a class of vectors, not one capsid", artifact.generic_mentions],
+                ["Unresolved", "a name the text does not identify", artifact.unresolved_mentions],
+                ["Not a capsid", "a known entity that is not an AAV capsid", artifact.non_candidate_mentions],
               ] as const
             ).map(([title, sub, rows]) => (
               <div key={title}>
@@ -344,17 +369,21 @@ export default async function ResultsPage({
             ))}
           </div>
           <p className="px-5 pb-4 text-[12px] leading-5 text-vr-faint">
-            These mentions stay in the relation artifact with their PMIDs. They
-            are not dropped and not guessed into a neighbouring candidate.
+            These mentions are kept with their PubMed IDs. They are not dropped, and not guessed into a nearby capsid.
           </p>
         </details>
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center gap-2 text-[12px] text-vr-faint">
-        <Chip>extractor label</Chip>
-        candidate type is the extractor’s label, carried through unchanged and
-        unvalidated.
-      </div>
     </Shell>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={null}>
+      <DataGate>
+        <ResultsView />
+      </DataGate>
+    </Suspense>
   );
 }

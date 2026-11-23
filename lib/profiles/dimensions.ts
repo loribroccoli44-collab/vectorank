@@ -63,9 +63,9 @@ export const PRIORITIZATION_DIMENSIONS: PrioritizationDimension[] = [];
 // direction or result.
 export const OUTCOME_SLOTS: { key: string; short: string; label: string }[] = [
   { key: "transduction_expression", short: "TRN", label: "Transduction / expression" },
-  { key: "efficacy", short: "EFF", label: "Efficacy (category label)" },
+  { key: "efficacy", short: "EFF", label: "Efficacy" },
   { key: "safety", short: "SAF", label: "Safety" },
-  { key: "immune", short: "IMM", label: "Immune" },
+  { key: "immune", short: "IMM", label: "Immune response" },
   { key: "durability", short: "DUR", label: "Durability" },
   { key: "manufacturing", short: "MFG", label: "Manufacturing" },
   { key: "mechanism", short: "MEC", label: "Mechanism" },

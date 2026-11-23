@@ -1,5 +1,6 @@
 "use client";
 
+import { BASE_PATH } from "@/lib/base";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -12,7 +13,7 @@ const KEY = "vr:lastResults";
 export function RememberResults() {
   useEffect(() => {
     try {
-      sessionStorage.setItem(KEY, location.pathname + location.search);
+      sessionStorage.setItem(KEY, location.pathname.slice(BASE_PATH.length) + location.search);
     } catch {
       /* storage unavailable */
     }

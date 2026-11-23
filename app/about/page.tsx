@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { primeServerData } from "@/lib/profiles/server-data";
 import type { Metadata } from "next";
 import { Shell } from "../_ui/chrome";
 import { SectionHeading } from "../_ui/atoms";
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 // at build time; nothing here is a performance claim.
 
 export default function AboutPage() {
+  primeServerData();
   const artifact = loadProfiles();
   const ruleProfiles = artifact.profiles.filter((p) => !p.discovery);
   const discovered = artifact.profiles.length - ruleProfiles.length;

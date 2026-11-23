@@ -31,9 +31,12 @@ export function Swatch({ direction }: { direction: string }) {
 }
 
 // The one visual for "the paper did not say".
-export function NotStated({ label = "not stated" }: { label?: string }) {
+export function NotStated({ label = "not reported" }: { label?: string }) {
   return (
-    <span className="vr-hatch inline-flex items-center rounded-[4px] border border-vr-line-strong px-1.5 py-0.5 font-vr-mono text-[11px] leading-none text-vr-muted">
+    <span
+      title="Not reported in the available abstract. This does not mean absent, ineffective or unsafe."
+      className="vr-hatch inline-flex items-center rounded-[4px] border border-vr-line-strong px-1.5 py-0.5 font-vr-mono text-[11px] leading-none text-vr-muted"
+    >
       {label}
     </span>
   );
@@ -64,7 +67,7 @@ export function Chip({
 export function Derived({ n }: { n: number }) {
   return (
     <span className="font-vr-mono text-[11px] text-vr-faint">
-      derived from {n} relation{n === 1 ? "" : "s"}
+      from {n} extracted finding{n === 1 ? "" : "s"}
     </span>
   );
 }

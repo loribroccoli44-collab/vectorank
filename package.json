@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
     "lint": "eslint",
-    "check": "node scripts/check-public-demo.mjs"
+    "check": "node scripts/check-public-demo.mjs",
+    "predev": "node scripts/sync-public-data.mjs",
+    "prebuild": "node scripts/sync-public-data.mjs",
+    "preview": "npx --yes serve@14.2.4 out -l 3000"
   },
   "dependencies": {
     "next": "16.2.1",

@@ -484,12 +484,12 @@ export const DIRECTION_LABEL: Record<string, string> = {
   reduced: "reduced",
   adverse: "adverse",
   no_detected_signal: "no signal detected",
-  [NOT_STATED]: "not stated",
+  [NOT_STATED]: "not reported",
 };
 
 export const OUTCOME_LABEL: Record<string, string> = {
   transduction_expression: "Transduction / expression",
-  immune: "Immune",
+  immune: "Immune response",
   manufacturing: "Manufacturing",
   mechanism: "Mechanism",
   safety: "Safety",
@@ -502,11 +502,11 @@ export function outcomeLabel(value: string): string {
 }
 
 export function facetLabel(value: string): string {
-  return value === NOT_STATED ? "not stated" : value.replace(/_/g, " ");
+  return value === NOT_STATED ? "not reported" : value.replace(/_/g, " ");
 }
 
 export function directionLabel(value: string | null): string {
-  return DIRECTION_LABEL[value ?? NOT_STATED] ?? value ?? "not stated";
+  return DIRECTION_LABEL[value ?? NOT_STATED] ?? value ?? "not reported";
 }
 
 // ---------------------------------------------------------------------------

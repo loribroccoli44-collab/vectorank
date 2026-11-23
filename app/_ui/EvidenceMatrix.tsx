@@ -27,12 +27,6 @@ function shade(count: number, max: number) {
   };
 }
 
-const STEPS = [
-  ["1", "Aggregate", "relation counts per tissue and model"],
-  ["2", "Inspect", "click a cell to list the relations behind it"],
-  ["3", "Source", "read the supporting text and open the PMID"],
-] as const;
-
 export default function EvidenceMatrix({
   matrix,
   candidateId,
@@ -57,32 +51,58 @@ export default function EvidenceMatrix({
 
   return (
     <div>
-      {!compact ? (
-        <ol className="mb-5 grid gap-2 sm:grid-cols-3">
-          {STEPS.map(([n, title, text]) => (
-            <li
-              key={n}
-              className="flex items-baseline gap-3 rounded-[8px] border border-vr-line px-3 py-2"
-            >
-              <span className="vr-num text-[11px] text-vr-accent">{n}</span>
-              <span className="text-[13px] text-vr-ink">{title}</span>
-              <span className="hidden text-[12px] text-vr-faint xl:inline">
-                {text}
-              </span>
-            </li>
-          ))}
-        </ol>
-      ) : null}
+      <p className="mb-3 max-w-[760px] text-[13px] leading-6 text-vr-muted">
+        Each square shows how many findings were reported for one tissue (row) and one experimental model (column).{" "}
+        <span className="text-vr-ink">Darker squares mean more published findings, not better capsid performance.</span>{" "}
+        Select a square to explore the supporting studies. An empty square means nothing was extracted, not that the
+        combination was tested and failed.
+      </p>
 
-      <div className="overflow-x-auto">
+      {/* Narrow screens: grouped list instead of a dense, horizontally scrolling grid. */}
+      <ul className="space-y-2 md:hidden">
+        {matrix.rows.map((row) => (
+          <li key={row} className="rounded-[8px] border border-vr-line px-3 py-2.5">
+            <div className="flex items-baseline justify-between gap-3">
+              <Link
+                href={href(filter.tissue === row ? undefined : row, undefined)}
+                className={`vr-focus text-[14px] ${row === NOT_STATED ? "text-vr-muted" : "text-vr-ink"} ${filter.tissue === row ? "underline decoration-vr-accent" : ""}`}
+              >
+                {row === NOT_STATED ? "Tissue not reported" : facetLabel(row)}
+              </Link>
+              <span className="vr-num text-[12px] text-vr-faint">{matrix.rowTotals[row]} findings</span>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {matrix.cols
+                .filter((col) => (matrix.cells[row]?.[col] ?? 0) > 0)
+                .map((col) => {
+                  const n = matrix.cells[row][col];
+                  return (
+                    <Link
+                      key={col}
+                      href={selected(row, col) ? href(undefined, undefined) : href(row, col)}
+                      className={`vr-focus vr-num rounded-[4px] border px-2 py-1 text-[12px] ${
+                        selected(row, col) ? "border-vr-ink" : "border-vr-line-strong"
+                      } ${row === NOT_STATED || col === NOT_STATED ? "vr-hatch" : ""}`}
+                      style={shade(n, matrix.max)}
+                    >
+                      {col === NOT_STATED ? "model not reported" : facetLabel(col)} · {n}
+                    </Link>
+                  );
+                })}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full border-separate border-spacing-[3px] text-[12px]">
           <caption className="sr-only">
-            Relation counts by tissue (rows) and experimental model (columns)
+            Counts of extracted findings by tissue (rows) and experimental model (columns)
           </caption>
           <thead>
             <tr>
               <th className={`p-1 text-left align-bottom ${compact ? "w-[92px] min-w-[84px]" : "w-[140px] min-w-[110px]"}`}>
-                <span className="vr-eyebrow !text-[10px]">tissue ↓ model →</span>
+                <span className="vr-eyebrow !text-[10px]">tissue ↓ · model →</span>
               </th>
               {matrix.cols.map((col) => (
                 <th
@@ -101,7 +121,7 @@ export default function EvidenceMatrix({
                 </th>
               ))}
               <th className={`p-1 text-right align-bottom ${compact ? "w-[40px]" : "w-[52px]"}`}>
-                <span className="vr-eyebrow !text-[10px]">total</span>
+                <span className="vr-eyebrow !text-[10px]">all</span>
               </th>
             </tr>
           </thead>
@@ -130,7 +150,7 @@ export default function EvidenceMatrix({
                               ? href(undefined, undefined)
                               : href(row, col)
                           }
-                          title={`${n} relation${n === 1 ? "" : "s"} · tissue ${facetLabel(row)} · model ${facetLabel(col)}`}
+                          title={`${n} finding${n === 1 ? "" : "s"} · tissue: ${facetLabel(row)} · model: ${facetLabel(col)}. Click to see them.`}
                           className={`vr-focus vr-num block rounded-[4px] ${cellPad} text-[13px] transition-[filter,transform] hover:-translate-y-px hover:brightness-125 ${
                             hatched ? "vr-hatch" : ""
                           } ${selected(row, col) ? "ring-2 ring-vr-ink" : ""}`}
@@ -143,7 +163,7 @@ export default function EvidenceMatrix({
                           className={`vr-num block rounded-[4px] border border-vr-line ${cellPad} text-vr-faint ${
                             hatched ? "vr-hatch opacity-60" : ""
                           }`}
-                          title="no relations"
+                          title="No findings extracted for this combination"
                         >
                           ·
                         </span>
@@ -160,7 +180,7 @@ export default function EvidenceMatrix({
           <tfoot>
             <tr>
               <th scope="row" className="p-1 text-left">
-                <span className="vr-eyebrow !text-[10px]">total</span>
+                <span className="vr-eyebrow !text-[10px]">all</span>
               </th>
               {matrix.cols.map((col) => (
                 <td key={col} className="vr-num p-1 text-center text-vr-muted">
@@ -175,26 +195,26 @@ export default function EvidenceMatrix({
 
       <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-vr-faint">
         <span className="flex items-center gap-2">
-          <span>fewer relations</span>
+          <span>fewer findings</span>
           <span
             className="inline-block h-2 w-20 rounded-[2px]"
             style={{
               background: `linear-gradient(to right, rgba(${ACCENT},0.14), rgba(${ACCENT},0.8))`,
             }}
           />
-          <span>more</span>
+          <span>more findings</span>
         </span>
         <span className="flex items-center gap-1.5">
           <span className="vr-hatch inline-block h-2.5 w-4 rounded-[2px] border border-vr-line-strong" />
-          not stated in the paper
+          not reported in the abstract
         </span>
-        <span>Shade shows evidence volume only, not efficacy or suitability.</span>
+        <span>Shading shows how much was reported, not efficacy or suitability.</span>
       </div>
 
       {hasSelection ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[8px] border border-vr-accent-dim bg-[#36cdb90d] px-4 py-3">
           <div className="text-[13px] text-vr-ink">
-            Selected
+            Showing findings for
             {filter.tissue ? <> · tissue <b className="font-medium">{facetLabel(filter.tissue)}</b></> : null}
             {filter.model ? <> · model <b className="font-medium">{facetLabel(filter.model)}</b></> : null}
             {filter.outcome ? <> · outcome <b className="font-medium">{outcomeLabel(filter.outcome)}</b></> : null}
@@ -205,7 +225,7 @@ export default function EvidenceMatrix({
               href={dossierHref(candidateId, filter, {}, "ledger")}
               className="vr-focus text-vr-accent underline-offset-4 hover:underline"
             >
-              View these relations ↓
+              View supporting findings ↓
             </Link>
             {compact ? null : (
               <Link

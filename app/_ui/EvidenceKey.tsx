@@ -22,7 +22,7 @@ export default function EvidenceKey() {
       <dl className="space-y-3 border-t border-vr-line px-5 py-4 text-[13px] leading-6 text-vr-muted">
         <div>
           <dt className="mb-1"><Chip>rule-based</Chip></dt>
-          <dd>Extracted from abstracts by fixed text rules. Machine-extracted; no relation has been reviewed by a person.</dd>
+          <dd>Extracted from abstracts by fixed text rules. Machine-extracted; no finding has been reviewed by a person.</dd>
         </div>
         <div>
           <dt className="mb-1"><Chip tone="note">AI-extracted</Chip></dt>
@@ -35,14 +35,14 @@ export default function EvidenceKey() {
         </div>
         <div>
           <dt className="mb-1"><NotStated /></dt>
-          <dd>The paper does not state this for the claim. It is never filled in, and it is not a negative result.</dd>
+          <dd>This information was not reported in the available abstract. It is never filled in, and it is not a negative result.</dd>
         </div>
         <div>
-          <dt className="mb-1"><Chip>held back</Chip></dt>
+          <dt className="mb-1"><Chip>not shown</Chip></dt>
           <dd>
-            Claims the checks withheld because they are ambiguous or may mislead: an effect of a treatment or immune cell,
-            a capsid not named in the sentence, an identity that needs review, or a result with no stated tissue, model or
-            route.{held !== null ? ` ${held.toLocaleString("en-US")} extracted claims are held back across the AI-extracted set.` : ""}
+            Findings the automatic checks do not show because they are ambiguous or may mislead: an effect of a treatment or immune cell,
+            a capsid not named in the sentence, an identity that needs review, or a result with no reported tissue, model or
+            route.{held !== null ? ` ${held.toLocaleString("en-US")} extracted findings are not shown across the AI-extracted set.` : ""}
           </dd>
         </div>
         <div>

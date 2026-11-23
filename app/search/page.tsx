@@ -1,3 +1,10 @@
+"use client";
+
+import { withBase } from "@/lib/base";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { toParams } from "@/lib/profiles/params";
+import DataGate from "../_ui/DataGate";
 import Link from "next/link";
 import { loadPapers, loadProfiles } from "@/lib/profiles/load";
 import {
@@ -33,12 +40,8 @@ const EXAMPLES: { label: string; ctx: Context }[] = [
 const selectClass =
   "vr-select vr-focus w-full rounded-[10px] border border-vr-line-strong bg-vr-bg px-4 py-3.5 pr-10 text-[15px] text-vr-ink transition-colors hover:border-vr-faint";
 
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const params = await searchParams;
+function SearchView() {
+  const params = toParams(useSearchParams());
   const artifact = loadProfiles();
   const vocabulary = facetVocabulary(artifact);
   const ctx = parseContext(params);
@@ -81,16 +84,15 @@ export default async function SearchPage({
         <section className="relative mx-auto max-w-[900px] pt-8 sm:pt-14">
           <div className="vr-eyebrow">Find a capsid</div>
           <h1 className="vr-display mt-3 text-[40px] font-semibold leading-[1.08] text-vr-ink sm:text-[52px]">
-            Search by name, or define a delivery context.
+            Search a capsid by name.
           </h1>
           <p className="mt-4 max-w-[600px] text-[16px] leading-7 text-vr-muted">
-            Look up a capsid by its name or any alias, or pick a tissue, a model
-            and a route to see which candidates have extracted evidence there,
-            and what is still unknown.
+            Type a capsid name or alias to see what published studies report about it. If you don’t know the name, find
+            capsids by the tissue, model and delivery route they were studied in.
           </p>
 
           <form
-            action="/results"
+            action={withBase("/results")}
             method="get"
             role="search"
             className="vr-panel mt-8 border-vr-line-strong p-5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)] sm:p-6"
@@ -104,7 +106,7 @@ export default async function SearchPage({
                 type="search"
                 name="q"
                 defaultValue={q}
-                placeholder="AAV9, PHP.eB, AAV2/8"
+                placeholder="e.g. AAV9 or AAV-PHP.B"
                 className="vr-focus min-w-0 flex-1 rounded-[8px] border border-vr-line-strong bg-vr-bg px-4 py-3 text-[15px] text-vr-ink placeholder:text-vr-faint hover:border-vr-faint"
               />
               <button type="submit" className="vr-cta vr-focus px-6 py-3 text-[15px]">
@@ -113,10 +115,10 @@ export default async function SearchPage({
             </div>
             <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-vr-faint">
               Try
-              {["AAV9", "AAV-PHP.B", "AAV2/8", "AAVrh10"].map((n) => (
+              {["AAV9", "AAV-PHP.B", "BAAV", "MC5"].map((n) => (
                 <a
                   key={n}
-                  href={`/results?q=${encodeURIComponent(n)}`}
+                  href={withBase(`/results?q=${encodeURIComponent(n)}`)}
                   className="vr-focus rounded-[4px] border border-vr-line-strong px-2 py-0.5 font-vr-mono text-vr-muted hover:border-vr-accent hover:text-vr-accent"
                 >
                   {n}
@@ -125,12 +127,17 @@ export default async function SearchPage({
             </p>
           </form>
 
-          <div className="mt-8 vr-eyebrow">Or explore by delivery context</div>
+          <details open={hasLens} className="group mt-6">
+            <summary className="vr-focus inline-flex cursor-pointer items-center gap-2 text-[14px] text-vr-ink hover:text-vr-accent">
+              <span className="font-vr-mono text-vr-muted group-open:hidden">▸</span>
+              <span className="hidden font-vr-mono text-vr-muted group-open:inline">▾</span>
+              Don’t know the name? Find capsids by tissue, model and delivery route
+            </summary>
 
           <form
-            action="/results"
+            action={withBase("/results")}
             method="get"
-            className="vr-panel mt-8 border-vr-line-strong p-5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)] sm:p-7"
+            className="vr-panel mt-4 border-vr-line-strong p-5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)] sm:p-7"
           >
             <div className="grid gap-4 sm:grid-cols-3">
               {FACETS.map((facet) => (
@@ -159,11 +166,11 @@ export default async function SearchPage({
                 <span className="h-1.5 w-1.5 rounded-full bg-vr-accent" />
                 <span>Shows where evidence exists, not a prediction.</span>
                 <span>
-                  Route is stated in only{" "}
+                  Delivery route is reported in only{" "}
                   <span className="vr-num text-vr-muted">
                     {Math.round((1 - notStatedShare.route) * 100)}%
                   </span>{" "}
-                  of relations.
+                  of findings.
                 </span>
               </p>
               <button type="submit" className="vr-cta vr-focus px-6 py-3 text-[15px]">
@@ -175,9 +182,9 @@ export default async function SearchPage({
               <div className="mt-4 border-t border-vr-line pt-4 text-[13px] text-vr-muted">
                 Your selection:{" "}
                 <span className="vr-num text-vr-ink">{previewCandidates}</span>{" "}
-                candidates with{" "}
+                capsids with{" "}
                 <span className="vr-num text-vr-ink">{previewRelations}</span>{" "}
-                matching relations.
+                matching findings.
               </div>
             ) : null}
           </form>
@@ -192,19 +199,21 @@ export default async function SearchPage({
               >
                 {e.label}
                 <span className="vr-num text-[11px] text-vr-faint">
-                  {e.candidates} candidates
+                  {e.candidates} capsids
                 </span>
               </Link>
             ))}
           </div>
 
+          </details>
+
                     <details className="vr-panel group mt-10">
             <summary className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-5 py-4">
               <span className="text-[14px] text-vr-ink">About this evidence base</span>
               <span className="vr-num text-[12px] text-vr-faint">
-                {papersShown.toLocaleString("en-US")} papers ·{" "}
-                {allRelations.length.toLocaleString("en-US")} candidate-attributed
-                relations · {ruleProfiles.length} candidates{aiDiscovered > 0 ? ` · +${aiDiscovered} AI-discovered` : ""}
+                {papersShown.toLocaleString("en-US")} publications ·{" "}
+                {allRelations.length.toLocaleString("en-US")} extracted
+                findings · {ruleProfiles.length} capsids{aiDiscovered > 0 ? ` · +${aiDiscovered} AI-discovered` : ""}
                 <span className="ml-2 text-vr-muted group-open:hidden">+</span>
                 <span className="ml-2 hidden text-vr-muted group-open:inline">−</span>
               </span>
@@ -212,28 +221,28 @@ export default async function SearchPage({
 
             <div className="space-y-7 border-t border-vr-line px-5 pb-6 pt-6">
               <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
-                <Stat value={papersShown.toLocaleString("en-US")} label="papers with evidence" />
+                <Stat value={papersShown.toLocaleString("en-US")} label="publications with evidence" />
                 <Stat
                   value={artifact.counts.relations_total.toLocaleString("en-US")}
-                  label="relations extracted"
+                  label="findings extracted"
                 />
                 <Stat
                   value={allRelations.length.toLocaleString("en-US")}
-                  label={`attributed to a candidate · ${papersWithRelations} papers`}
+                  label={`assigned to a named capsid · ${papersWithRelations} publications`}
                 />
                 <Stat
                   value={artifact.counts.candidate_profiles}
                   label={
                     artifact.counts.ai_discovered_profiles
-                      ? `candidate profiles · ${artifact.counts.ai_discovered_profiles} AI-discovered`
-                      : "candidate profiles"
+                      ? `capsid profiles · ${artifact.counts.ai_discovered_profiles} AI-discovered`
+                      : "capsid profiles"
                   }
                 />
               </div>
 
               <div>
                 <div className="vr-eyebrow mb-3">
-                  Share of attributed relations that do not state…
+                  Share of findings whose abstract does not report…
                 </div>
                 <ul className="space-y-2.5">
                   {FACETS.map((f) => (
@@ -254,8 +263,8 @@ export default async function SearchPage({
                   ))}
                 </ul>
                 <p className="mt-2 font-vr-mono text-[11px] text-vr-faint">
-                  derived from {allRelations.length.toLocaleString("en-US")}{" "}
-                  candidate-attributed relations
+                  from {allRelations.length.toLocaleString("en-US")}{" "}
+                  extracted findings
                 </p>
               </div>
 
@@ -263,9 +272,9 @@ export default async function SearchPage({
                 <div>
                   <div className="vr-eyebrow mb-2">It does</div>
                   <ul className="space-y-1.5 text-[13px] leading-5 text-vr-muted">
-                    <li>Group extracted evidence under one canonical candidate.</li>
-                    <li>Keep the PMID and supporting text for every relation.</li>
-                    <li>Show what a paper did not state, as unknown.</li>
+                    <li>Group extracted evidence under one capsid name.</li>
+                    <li>Keep the PubMed ID and supporting text for every finding.</li>
+                    <li>Show what an abstract did not report, as unknown.</li>
                   </ul>
                 </div>
                 <div>
@@ -284,8 +293,7 @@ export default async function SearchPage({
                   Extraction accuracy is measured only on an LLM-assisted 30-paper
                   development pilot (precision 0.52, recall 0.81), not on
                   held-out data. Profiles are unvalidated extraction output from
-                  abstracts. <NotStated /> means the extractor found no value,
-                  never a negative result.
+                  abstracts. <NotStated /> means the abstract did not report it, never a negative result.
                 </p>
               </div>
             </div>
@@ -293,5 +301,15 @@ export default async function SearchPage({
         </section>
       </div>
     </Shell>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <DataGate>
+        <SearchView />
+      </DataGate>
+    </Suspense>
   );
 }
