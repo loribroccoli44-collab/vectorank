@@ -4,6 +4,8 @@
 
 ### Live demo: [vectorank.vercel.app](https://vectorank.vercel.app)
 
+Mirror (same site, GitHub Pages): [loribroccoli44-collab.github.io/vectorank](https://loribroccoli44-collab.github.io/vectorank/)
+
 *Research-stage Beta. An independently developed prototype.*
 
 ![VectoRank home page](docs/img/home.png)
